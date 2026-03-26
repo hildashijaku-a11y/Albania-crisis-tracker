@@ -3,22 +3,27 @@ const root = document.getElementById("root");
 let activeTab = "crisis";
 
 const SHEET_BASE =
-  "https://docs.google.com/spreadsheets/d/1F_44fLFdzRz2LDWD9JSFJ3VutU4jbYM5bG7P654m-Dc/export?format=csv&gid=";
+  "https://docs.google.com/spreadsheets/d/1jKNWJPPbK72cvvKsuVgHPB8aLCSNoCf1fTS7CgUZlQc/export?format=csv&gid=";
 
 const URLS = {
+  // Global / crisis
+  brent: `${SHEET_BASE}0`,
+  wti: `${SHEET_BASE}1835083988`,
+  vix: `${SHEET_BASE}1068023263`,
+  gold: `${SHEET_BASE}1619011895`,
   hormuzOil: `${SHEET_BASE}1332311442`,
-  hormuzTimeline: `${SHEET_BASE}30458749`,
+  crisisTimeline: `${SHEET_BASE}30458749`,
   shipsTransit: `${SHEET_BASE}907185380`,
 
-  laosFx: `${SHEET_BASE}158156900`,
+  // Albania
+  exchange: `${SHEET_BASE}158156900`,
   reserves: `${SHEET_BASE}864450268`,
   fuel: `${SHEET_BASE}96401015`,
-  inflation: `${SHEET_BASE}1526208390`,
-  laosTimeline: `${SHEET_BASE}1672038515`,
+  prices: `${SHEET_BASE}1526208390`,
+  albaniaTimeline: `${SHEET_BASE}1672038515`,
 
+  // Text
   overallText: `${SHEET_BASE}1254341027`,
-  gold: `${SHEET_BASE}1619011895`,
-  vix: `${SHEET_BASE}1068023263`,
 };
 
 const COLORS = {
@@ -30,6 +35,7 @@ const COLORS = {
   sand: "#c59d6f",
   rust: "#c1694f",
   slate: "#7a8796",
+  green: "#7f9b6a",
   bg1: "#eef4f8",
   bg2: "#f6f1e7",
   page: "#fbf8f2",
@@ -138,7 +144,7 @@ const styles = `
     margin-top: 16px;
   }
 
-  .laos-grid {
+  .country-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
@@ -307,7 +313,7 @@ const styles = `
   @media (max-width: 980px) {
     .overall-grid,
     .grid,
-    .laos-grid {
+    .country-grid {
       grid-template-columns: 1fr;
     }
 
@@ -341,10 +347,10 @@ function render() {
     <style>${styles}</style>
     <div class="page">
       <section class="hero">
-        <div class="eyebrow">Oil Shock — Laos Impact Tracker</div>
-        <h1 class="title">Laos macro tracker</h1>
+        <div class="eyebrow">Oil Shock — Albania Impact Tracker</div>
+        <h1 class="title">Albania macro tracker</h1>
         <div class="dek">
-          A compact dashboard for monitoring global oil disruption signals, Laos transmission channels,
+          A compact dashboard for monitoring global oil disruption signals, Albania transmission channels,
           and crisis developments over time.
         </div>
       </section>
@@ -365,7 +371,7 @@ function render() {
           </div>
 
           <div class="card">
-            <div class="kpi-label">KIP / USD</div>
+            <div class="kpi-label">ALL / USD</div>
             <div class="kpi-value" id="kpiFx">—</div>
             <div class="kpi-date" id="kpiFxDate">Loading...</div>
           </div>
@@ -387,13 +393,13 @@ function render() {
       <div class="tabs">
         <button class="tab ${activeTab === "crisis" ? "active" : ""}" id="tab-crisis">Crisis Overview</button>
         <button class="tab ${activeTab === "global" ? "active" : ""}" id="tab-global">Global</button>
-        <button class="tab ${activeTab === "laos" ? "active" : ""}" id="tab-laos">Laos</button>
+        <button class="tab ${activeTab === "albania" ? "active" : ""}" id="tab-albania">Albania</button>
       </div>
 
       <section id="tabContent">${renderTabContent()}</section>
 
       <div class="footer-note">
-        Source note: HormuzTracker for disruption and oil-market content; Laos indicators compiled from national sources.
+        Source note: crisis and oil-market sheets combined with Albania indicators compiled in the linked spreadsheet.
       </div>
     </div>
   `;
@@ -408,8 +414,8 @@ function render() {
     render();
   };
 
-  document.getElementById("tab-laos").onclick = () => {
-    activeTab = "laos";
+  document.getElementById("tab-albania").onclick = () => {
+    activeTab = "albania";
     render();
   };
 
@@ -417,7 +423,7 @@ function render() {
 
   if (activeTab === "crisis") initCrisisOverview();
   if (activeTab === "global") initGlobal();
-  if (activeTab === "laos") initLaos();
+  if (activeTab === "albania") initAlbania();
 }
 
 function renderTabContent() {
@@ -456,9 +462,9 @@ function renderTabContent() {
 
         <div class="card">
           <h3>Crisis Timeline</h3>
-          <p class="sub">Key events since Feb 28.</p>
+          <p class="sub">Key events</p>
           <div id="timelineScroll" class="timeline-scroll">Loading...</div>
-          <div class="source-note">Source: HormuzTracker + verified news.</div>
+          <div class="source-note">Source: crisis timeline sheet.</div>
           <div id="timelineError" class="error"></div>
         </div>
       </div>
@@ -470,14 +476,14 @@ function renderTabContent() {
       <div class="grid">
         <div class="card">
           <h3>Brent crude</h3>
-          <p class="sub">Hormuz oil sheet</p>
+          <p class="sub">Global oil benchmark</p>
           <div class="chart-wrap"><canvas id="brentChart"></canvas></div>
           <div id="brentError" class="error"></div>
         </div>
 
         <div class="card">
           <h3>WTI crude</h3>
-          <p class="sub">Hormuz oil sheet</p>
+          <p class="sub">US oil benchmark</p>
           <div class="chart-wrap"><canvas id="wtiChart"></canvas></div>
           <div id="wtiError" class="error"></div>
         </div>
@@ -500,9 +506,9 @@ function renderTabContent() {
   }
 
   return `
-    <div class="laos-grid">
+    <div class="country-grid">
       <div class="card">
-        <h3>KIP / USD</h3>
+        <h3>ALL / USD</h3>
         <p class="sub">Exchange rate</p>
         <div class="chart-wrap"><canvas id="fxChart"></canvas></div>
         <div id="fxError" class="error"></div>
@@ -510,14 +516,14 @@ function renderTabContent() {
 
       <div class="card">
         <h3>Foreign reserves</h3>
-        <p class="sub">USD million</p>
+        <p class="sub">Latest reserve trend</p>
         <div class="chart-wrap"><canvas id="reservesChart"></canvas></div>
         <div id="reservesError" class="error"></div>
       </div>
 
       <div class="card">
         <h3>Fuel prices</h3>
-        <p class="sub">Diesel and gasoline</p>
+        <p class="sub">Vertical bars</p>
         <div class="chart-wrap"><canvas id="fuelChart"></canvas></div>
         <div id="fuelError" class="error"></div>
       </div>
@@ -537,10 +543,10 @@ function renderTabContent() {
       </div>
 
       <div class="card">
-        <h3>Laos timeline</h3>
+        <h3>Albania timeline</h3>
         <p class="sub">Policy and market developments</p>
-        <div id="laosTimelineScroll" class="timeline-scroll">Loading...</div>
-        <div id="laosTimelineError" class="error"></div>
+        <div id="albaniaTimelineScroll" class="timeline-scroll">Loading...</div>
+        <div id="albaniaTimelineError" class="error"></div>
       </div>
     </div>
   `;
@@ -846,13 +852,13 @@ async function fetchInflationWide(url) {
     if (!date) continue;
 
     labels.push(date);
-    data.headline.push(parseNum(row[idx.headline]));
-    data.core.push(parseNum(row[idx.core]));
-    data.nonCore.push(parseNum(row[idx.nonCore]));
-    data.rawFood.push(parseNum(row[idx.rawFood]));
-    data.fuel.push(parseNum(row[idx.fuel]));
-    data.domesticGoods.push(parseNum(row[idx.domesticGoods]));
-    data.importedGoods.push(parseNum(row[idx.importedGoods]));
+    data.headline.push(idx.headline >= 0 ? parseNum(row[idx.headline]) : null);
+    data.core.push(idx.core >= 0 ? parseNum(row[idx.core]) : null);
+    data.nonCore.push(idx.nonCore >= 0 ? parseNum(row[idx.nonCore]) : null);
+    data.rawFood.push(idx.rawFood >= 0 ? parseNum(row[idx.rawFood]) : null);
+    data.fuel.push(idx.fuel >= 0 ? parseNum(row[idx.fuel]) : null);
+    data.domesticGoods.push(idx.domesticGoods >= 0 ? parseNum(row[idx.domesticGoods]) : null);
+    data.importedGoods.push(idx.importedGoods >= 0 ? parseNum(row[idx.importedGoods]) : null);
   }
 
   return { labels, ...data };
@@ -882,10 +888,10 @@ async function fetchHormuzOil(url) {
     if (!date) continue;
 
     labels.push(date);
-    brent.push(parseNum(row[brentIdx]));
-    wti.push(parseNum(row[wtiIdx]));
-    ttf.push(parseNum(row[ttfIdx]));
-    usGasoline.push(parseNum(row[gasIdx]));
+    brent.push(brentIdx >= 0 ? parseNum(row[brentIdx]) : null);
+    wti.push(wtiIdx >= 0 ? parseNum(row[wtiIdx]) : null);
+    ttf.push(ttfIdx >= 0 ? parseNum(row[ttfIdx]) : null);
+    usGasoline.push(gasIdx >= 0 ? parseNum(row[gasIdx]) : null);
   }
 
   return { labels, brent, wti, ttf, usGasoline };
@@ -966,8 +972,8 @@ async function initOverall() {
   }
 
   try {
-    const oil = await fetchHormuzOil(URLS.hormuzOil);
-    const filtered = filterFromThisJanuary(oil.labels, oil.brent);
+    const oil = await fetchSingleSeries(URLS.brent);
+    const filtered = filterFromThisJanuary(oil.labels, oil.values);
     const latest = latestNonNull(filtered.labels, filtered.series[0]);
     document.getElementById("kpiBrent").textContent = formatValue(latest.value, 1);
     document.getElementById("kpiBrentDate").textContent = latest.label || "No data";
@@ -976,17 +982,17 @@ async function initOverall() {
   }
 
   try {
-    const fx = await fetchSingleSeries(URLS.laosFx);
+    const fx = await fetchSingleSeries(URLS.exchange);
     const filtered = filterFromThisJanuary(fx.labels, fx.values);
     const latest = latestNonNull(filtered.labels, filtered.series[0]);
-    document.getElementById("kpiFx").textContent = formatValue(latest.value, 0);
+    document.getElementById("kpiFx").textContent = formatValue(latest.value, 1);
     document.getElementById("kpiFxDate").textContent = latest.label || "No data";
   } catch {
     document.getElementById("kpiFxDate").textContent = "Could not load";
   }
 
   try {
-    const infl = await fetchInflationWide(URLS.inflation);
+    const infl = await fetchInflationWide(URLS.prices);
     const filtered = keepLastN(infl.labels, infl.headline);
     const latest = latestNonNull(filtered.labels, filtered.series[0]);
     document.getElementById("kpiCpi").textContent = formatValue(latest.value, 1, "%");
@@ -1036,7 +1042,7 @@ async function initCrisisOverview() {
   }
 
   try {
-    const items = await fetchTimeline(URLS.hormuzTimeline);
+    const items = await fetchTimeline(URLS.crisisTimeline);
     const target = document.getElementById("timelineScroll");
 
     if (!items.length) {
@@ -1061,15 +1067,17 @@ async function initCrisisOverview() {
 
 async function initGlobal() {
   try {
-    const oil = await fetchHormuzOil(URLS.hormuzOil);
-    const brentFiltered = filterFromThisJanuary(oil.labels, oil.brent);
-    const wtiFiltered = filterFromThisJanuary(oil.labels, oil.wti);
+    const brent = await fetchSingleSeries(URLS.brent);
+    const wti = await fetchSingleSeries(URLS.wti);
+
+    const brentFiltered = filterFromThisJanuary(brent.labels, brent.values);
+    const wtiFiltered = filterFromThisJanuary(wti.labels, wti.values);
 
     makeLineChart("brentChart", brentFiltered.labels, singleDataset("Brent", brentFiltered.series[0], COLORS.sand));
     makeLineChart("wtiChart", wtiFiltered.labels, singleDataset("WTI", wtiFiltered.series[0], COLORS.blueDark));
   } catch {
-    document.getElementById("brentError").textContent = "Could not load oil data.";
-    document.getElementById("wtiError").textContent = "Could not load oil data.";
+    document.getElementById("brentError").textContent = "Could not load Brent data.";
+    document.getElementById("wtiError").textContent = "Could not load WTI data.";
   }
 
   try {
@@ -1089,11 +1097,11 @@ async function initGlobal() {
   }
 }
 
-async function initLaos() {
+async function initAlbania() {
   try {
-    const fx = await fetchSingleSeries(URLS.laosFx);
+    const fx = await fetchSingleSeries(URLS.exchange);
     const filtered = filterFromThisJanuary(fx.labels, fx.values);
-    makeLineChart("fxChart", filtered.labels, singleDataset("KIP / USD", filtered.series[0], COLORS.blueDark));
+    makeLineChart("fxChart", filtered.labels, singleDataset("ALL / USD", filtered.series[0], COLORS.blueDark));
   } catch {
     document.getElementById("fxError").textContent = "Could not load exchange rate data.";
   }
@@ -1115,7 +1123,7 @@ async function initLaos() {
   }
 
   try {
-    const infl = await fetchInflationWide(URLS.inflation);
+    const infl = await fetchInflationWide(URLS.prices);
 
     const mainFiltered = keepLastN(
       infl.labels,
@@ -1133,7 +1141,7 @@ async function initLaos() {
         { label: "Headline inflation", data: mainFiltered.series[0], color: COLORS.blueDark },
         { label: "Core inflation", data: mainFiltered.series[1], color: COLORS.blue },
         { label: "Non-core inflation", data: mainFiltered.series[2], color: COLORS.sand },
-        { label: "Raw food inflation", data: mainFiltered.series[3], color: "#7f9b6a" },
+        { label: "Raw food inflation", data: mainFiltered.series[3], color: COLORS.green },
         { label: "Fuel inflation", data: mainFiltered.series[4], color: COLORS.rust }
       ]),
       8
@@ -1160,11 +1168,11 @@ async function initLaos() {
   }
 
   try {
-    const items = await fetchTimeline(URLS.laosTimeline);
-    const target = document.getElementById("laosTimelineScroll");
+    const items = await fetchTimeline(URLS.albaniaTimeline);
+    const target = document.getElementById("albaniaTimelineScroll");
 
     if (!items.length) {
-      target.innerHTML = "No Laos timeline data found.";
+      target.innerHTML = "No Albania timeline data found.";
       return;
     }
 
@@ -1179,7 +1187,7 @@ async function initLaos() {
       `)
       .join("");
   } catch {
-    document.getElementById("laosTimelineError").textContent = "Could not load Laos timeline.";
+    document.getElementById("albaniaTimelineError").textContent = "Could not load Albania timeline.";
   }
 }
 
